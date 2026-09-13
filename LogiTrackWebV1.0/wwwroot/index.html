@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LogiTrack — Customer Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+    <!-- Auth / Login Panel -->
+    <main id="view-login" class="login">
+        <div class="login__panel">
+            <div class="brand">
+                <span class="brand__mark" aria-hidden="true"></span>
+                <span class="brand__name">LogiTrack</span>
+            </div>
+            <h1 class="login__title">LogiTrack Logistics</h1>
+            <p class="login__sub">Sign in to manage and track your shipments seamlessly.</p>
+
+            <div class="field">
+                <label for="login-username">Username or Email</label>
+                <input id="login-username" type="text" placeholder="Enter username or email" />
+            </div>
+            <div class="field">
+                <label for="login-password">Password</label>
+                <input id="login-password" type="password" placeholder="Enter password" />
+            </div>
+
+            <button id="btn-login" class="btn btn--primary btn--block">Sign In</button>
+            <p id="login-error" class="form-error" hidden></p>
+        </div>
+    </main>
+
+    <!-- Main App Panel -->
+    <div id="view-app" class="app" hidden>
+        <header class="topbar">
+            <div class="brand">
+                <span class="brand__mark" aria-hidden="true"></span>
+                <span class="brand__name">LogiTrack</span>
+                <small style="font-size: 0.75rem; color: var(--text-muted);">[Customer Portal]</small>
+            </div>
+            <div class="topbar__user">
+                <span id="user-name" class="topbar__who">User</span>
+                <button id="btn-logout" class="btn btn--ghost">Sign out</button>
+            </div>
+        </header>
+
+        <nav class="tabs" role="tablist">
+            <button class="tab is-active" data-tab="new">New Shipment</button>
+            <button class="tab" data-tab="list">My Requests</button>
+            <button class="tab" data-tab="track">Track Shipment</button>
+        </nav>
+
+        <!-- Tab 1: Create Shipment -->
+        <section id="panel-new" class="panel">
+            <div class="grid">
+                <div class="card">
+                    <h2 class="card__title">Request a Shipment</h2>
+                    <p class="card__hint">Provide shipment details to generate an instant route and price estimate.</p>
+
+                    <div class="field">
+                        <label for="req-weight">Weight (kg)</label>
+                        <input id="req-weight" type="number" min="0.1" step="0.1" placeholder="e.g. 10.5" />
+                    </div>
+                    <div class="field">
+                        <label for="req-warehouse">Collect From (Warehouse)</label>
+                        <select id="req-warehouse"><option value="">Select origin warehouse</option></select>
+                    </div>
+                    <div class="field">
+                        <label for="req-station">Deliver To (Station)</label>
+                        <select id="req-station"><option value="">Select destination station</option></select>
+                    </div>
+                    <div class="field">
+                        <label for="req-date">Scheduled Date</label>
+                        <input id="req-date" type="date" />
+                    </div>
+
+                    <div class="actions">
+                        <button id="btn-quote" class="btn btn--outline">Calculate Price</button>
+                        <button id="btn-submit" class="btn btn--primary" disabled>Submit Request</button>
+                    </div>
+                </div>
+
+                <aside class="card card--quote">
+                    <div class="quote__empty" id="quote-empty">
+                        <p>Fill out the form to calculate fee breakdowns.</p>
+                    </div>
+                    <div class="quote__body" id="quote-body" hidden>
+                        <span class="quote__label">Estimated Total</span>
+                        <div class="quote__total"><span id="quote-total">0.00</span> <span class="quote__ccy">EGP</span></div>
+                        <dl class="quote__lines">
+                            <div><dt>Base Fee</dt><dd id="q-base">—</dd></div>
+                            <div><dt>Weight Rate</dt><dd id="q-weight">—</dd></div>
+                        </dl>
+                    </div>
+                </aside>
+            </div>
+        </section>
+
+        <!-- Tab 2: User Shipments List -->
+        <section id="panel-list" class="panel" hidden>
+            <div class="panel__head">
+                <h2 class="card__title">My Shipments</h2>
+                <button id="btn-refresh-user" class="btn btn--ghost">Refresh</button>
+            </div>
+            <div id="requests-empty" class="quote__empty" hidden>
+                <p>No active shipment requests found.</p>
+            </div>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Tracking #</th>
+                            <th>Route</th>
+                            <th>Weight</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="user-shipments-body"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Tab 3: Track Shipment -->
+        <section id="panel-track" class="panel" hidden>
+            <div class="card">
+                <h2 class="card__title">Track Shipment Status</h2>
+                <div class="field" style="margin-top: 15px;">
+                    <input id="track-input" type="text" placeholder="Enter Tracking Number (e.g., LT-20260911-AB12CD)" />
+                </div>
+                <button id="btn-track" class="btn btn--primary">Search Track</button>
+                <div id="track-result" style="margin-top: 20px;" hidden></div>
+            </div>
+        </section>
+    </div>
+
+    <script src="auth.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

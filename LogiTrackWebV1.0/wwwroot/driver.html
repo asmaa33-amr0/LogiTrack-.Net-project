@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LogiTrack - Driver Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <header class="app-header">
+        <div class="brand">
+            <span class="brand__mark" aria-hidden="true"></span>
+            <span class="brand__name">LogiTrack</span>
+            <small style="font-size: 0.75rem; color: var(--accent-primary);">[Driver Portal]</small>
+        </div>
+        <div class="user-info">
+            <span id="driver-name">Driver</span>
+            <button id="btn-logout" class="btn btn--ghost">Sign Out</button>
+        </div>
+    </header>
+
+    <div class="app-container">
+        <!-- Stats Row -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-title">Active Deliveries</div>
+                <div id="stat-active-count" class="stat-value pending">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">Completed Tasks</div>
+                <div id="stat-completed-count" class="stat-value completed">0</div>
+            </div>
+        </div>
+
+        <!-- Filter & Search Tool -->
+        <div class="panel">
+            <div class="panel__head">
+                <h3 style="margin: 0;">Assigned Logistics Tasks</h3>
+                <div style="display: flex; gap: 10px; width: 50%;">
+                    <input type="text" id="driver-search-input" placeholder="Search tracking # or destination..." onkeyup="filterDriverShipments()" />
+                    <button id="btn-refresh" class="btn btn--outline">Refresh</button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Tracking #</th>
+                            <th>Origin</th>
+                            <th>Destination</th>
+                            <th>Weight</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="driver-shipments-body">
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: var(--text-muted);">Loading deliveries...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Route Checkpoint Modal -->
+    <div class="modal" id="routeModal" style="display: none;">
+        <div class="modal-content">
+            <h3>Add Route Checkpoint</h3>
+            <input type="hidden" id="modal-shipment-id">
+            <div class="field" style="margin-top: 12px;">
+                <label for="route-station-select">Checkpoint Station</label>
+                <select id="route-station-select"></select>
+            </div>
+            <div class="field">
+                <label for="route-notes">Notes / Location Info</label>
+                <input type="text" id="route-notes" placeholder="e.g. Arrived at transit hub" />
+            </div>
+            <div class="actions">
+                <button class="btn btn--primary" onclick="submitRoutePoint()">Add Point</button>
+                <button class="btn btn--ghost" onclick="closeModal('routeModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script src="driver.js"></script>
+</body>
+</html>

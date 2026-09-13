@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LogiTrack - Admin Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* إضافات صغيرة خاصة بلوحة الأدمن فقط - باقي التصميم من styles.css الأساسي */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px 18px;
+        }
+
+            .form-grid .field.full {
+                grid-column: 1 / -1;
+            }
+
+        .modal-content.wide {
+            width: 560px;
+        }
+
+        .btn-action {
+            padding: 6px 12px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            border-radius: var(--radius-sm);
+        }
+
+        .btn-view {
+            background: transparent;
+            border: 1px solid var(--info);
+            color: var(--info);
+        }
+
+            .btn-view:hover {
+                background: rgba(59,130,246,0.15);
+            }
+
+        .row-actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            margin-top: 12px;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding: 4px 0 18px 24px;
+            border-left: 2px solid var(--border-color);
+        }
+
+            .timeline-item:last-child {
+                border-left-color: transparent;
+                padding-bottom: 0;
+            }
+
+            .timeline-item::before {
+                content: '';
+                position: absolute;
+                left: -6px;
+                top: 4px;
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background: var(--accent-primary);
+            }
+
+        .timeline-station {
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .timeline-info {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-top: 2px;
+        }
+
+        .timeline-time {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            margin-top: 2px;
+            font-family: var(--font-mono);
+        }
+
+        .muted-note {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-top: 6px;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="app-header">
+        <div class="brand">
+            <span class="brand__mark" aria-hidden="true"></span>
+            <span class="brand__name">LogiTrack</span>
+            <small style="font-size: 0.75rem; color: var(--accent-primary);">[System Admin]</small>
+        </div>
+        <div class="user-info">
+            <span id="admin-user-name">Admin</span>
+            <button id="btn-admin-logout" class="btn--ghost">Logout</button>
+        </div>
+    </header>
+
+    <nav class="tabs" role="tablist">
+        <button class="tab is-active" data-tab="shipments">Shipments</button>
+        <button class="tab" data-tab="warehouses">Warehouses</button>
+        <button class="tab" data-tab="drivers">Drivers</button>
+        <button class="tab" data-tab="stations">Stations</button>
+    </nav>
+
+    <div class="app-container">
+
+        <!-- ============ SHIPMENTS TAB ============ -->
+        <section id="panel-shipments" class="panel">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-title">Total Shipments</div>
+                    <div id="stat-total-shipments" class="stat-value">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Pending Delivery</div>
+                    <div id="stat-pending-shipments" class="stat-value pending">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Completed</div>
+                    <div id="stat-completed-shipments" class="stat-value completed">0</div>
+                </div>
+            </div>
+
+            <div class="panel__head">
+                <h3 style="margin: 0;">System Overview & Search</h3>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <input type="text" id="admin-search-input" placeholder="Search tracking #, warehouse or driver..." oninput="filterAdminTable()" />
+                    <button id="btn-refresh-admin" class="btn--outline">Refresh</button>
+                    <button class="btn--primary" onclick="openShipmentModal()">+ New Shipment</button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Tracking #</th>
+                            <th>Origin</th>
+                            <th>Destination</th>
+                            <th>Driver</th>
+                            <th>Weight</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-shipments-body">
+                        <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ============ WAREHOUSES TAB ============ -->
+        <section id="panel-warehouses" class="panel" hidden>
+            <div class="panel__head">
+                <h3 style="margin: 0;">Warehouses</h3>
+                <button class="btn--primary" onclick="openWarehouseModal()">+ New Warehouse</button>
+            </div>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Name</th><th>City</th><th>Coordinates</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody id="admin-warehouses-body">
+                        <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ============ DRIVERS TAB ============ -->
+        <section id="panel-drivers" class="panel" hidden>
+            <div class="panel__head">
+                <h3 style="margin: 0;">Drivers</h3>
+                <button class="btn--primary" onclick="openDriverModal()">+ New Driver</button>
+            </div>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Full Name</th><th>Phone</th><th>License #</th><th>Expiry</th><th>Login Account</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody id="admin-drivers-body">
+                        <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ============ STATIONS TAB ============ -->
+        <section id="panel-stations" class="panel" hidden>
+            <div class="panel__head">
+                <h3 style="margin: 0;">Stations</h3>
+                <button class="btn--primary" onclick="openStationModal()">+ New Station</button>
+            </div>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Name</th><th>Coordinates</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody id="admin-stations-body">
+                        <tr><td colspan="3" style="text-align: center; color: var(--text-muted);">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <!-- ============ SHIPMENT MODAL ============ -->
+    <div class="modal" id="shipmentModal" style="display:none;">
+        <div class="modal-content wide">
+            <h3 id="shipmentModalTitle">New Shipment</h3>
+            <input type="hidden" id="shipment-id">
+            <div class="form-grid" style="margin-top: 16px;">
+                <div class="field">
+                    <label>Tracking Number (optional)</label>
+                    <input type="text" id="shipment-tracking" placeholder="Auto-generated if empty">
+                </div>
+                <div class="field">
+                    <label>Weight (kg)</label>
+                    <input type="number" min="0.1" step="0.1" id="shipment-weight">
+                </div>
+                <div class="field">
+                    <label>Status</label>
+                    <select id="shipment-status">
+                        <option value="Pending">Pending</option>
+                        <option value="In Transit">In Transit</option>
+                        <option value="Delivered">Delivered</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Receive Date</label>
+                    <input type="date" id="shipment-date">
+                </div>
+                <div class="field">
+                    <label>Warehouse (Origin)</label>
+                    <select id="shipment-warehouse"></select>
+                </div>
+                <div class="field">
+                    <label>Destination Station</label>
+                    <select id="shipment-station"></select>
+                </div>
+                <div class="field full">
+                    <label>Driver</label>
+                    <select id="shipment-driver"></select>
+                </div>
+            </div>
+            <div class="actions">
+                <button class="btn btn--primary" onclick="saveShipment()">Save</button>
+                <button class="btn btn--ghost" onclick="closeModal('shipmentModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ WAREHOUSE MODAL ============ -->
+    <div class="modal" id="warehouseModal" style="display:none;">
+        <div class="modal-content">
+            <h3 id="warehouseModalTitle">New Warehouse</h3>
+            <input type="hidden" id="warehouse-id">
+            <div class="field" style="margin-top: 16px;"><label>Name</label><input type="text" id="warehouse-name"></div>
+            <div class="field"><label>City</label><input type="text" id="warehouse-city"></div>
+            <div class="form-grid">
+                <div class="field"><label>Latitude</label><input type="number" step="0.0001" id="warehouse-lat"></div>
+                <div class="field"><label>Longitude</label><input type="number" step="0.0001" id="warehouse-lng"></div>
+            </div>
+            <div class="actions">
+                <button class="btn btn--primary" onclick="saveWarehouse()">Save</button>
+                <button class="btn btn--ghost" onclick="closeModal('warehouseModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ DRIVER MODAL ============ -->
+    <div class="modal" id="driverModal" style="display:none;">
+        <div class="modal-content">
+            <h3 id="driverModalTitle">New Driver</h3>
+            <input type="hidden" id="driver-id">
+            <div class="field" style="margin-top: 16px;"><label>Full Name</label><input type="text" id="driver-fullname"></div>
+            <div class="field"><label>Phone</label><input type="text" id="driver-phone"></div>
+            <div class="form-grid">
+                <div class="field"><label>License Number</label><input type="text" id="driver-license"></div>
+                <div class="field"><label>License Expiry</label><input type="date" id="driver-expiry"></div>
+            </div>
+            <div class="field">
+                <label>Linked Login Account</label>
+                <select id="driver-user"><option value="">No login account linked</option></select>
+                <p class="field__note">You can link an existing Driver account, or create one below.</p>
+            </div>
+            <div class="form-grid">
+                <div class="field"><label>New Login Username</label><input type="text" id="driver-account-username" placeholder="driver username"></div>
+                <div class="field"><label>New Login Email</label><input type="email" id="driver-account-email" placeholder="driver@example.com"></div>
+                <div class="field full"><label>New Login Password</label><input type="password" id="driver-account-password" placeholder="Minimum 6 characters"></div>
+            </div>
+            <div class="actions">
+                <button class="btn btn--primary" onclick="saveDriver()">Save</button>
+                <button class="btn btn--ghost" onclick="closeModal('driverModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ STATION MODAL ============ -->
+    <div class="modal" id="stationModal" style="display:none;">
+        <div class="modal-content">
+            <h3 id="stationModalTitle">New Station</h3>
+            <input type="hidden" id="station-id">
+            <div class="field" style="margin-top: 16px;"><label>Name</label><input type="text" id="station-name"></div>
+            <div class="form-grid">
+                <div class="field"><label>Latitude</label><input type="number" step="0.0001" id="station-lat"></div>
+                <div class="field"><label>Longitude</label><input type="number" step="0.0001" id="station-lng"></div>
+            </div>
+            <div class="actions">
+                <button class="btn btn--primary" onclick="saveStation()">Save</button>
+                <button class="btn btn--ghost" onclick="closeModal('stationModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ TRACK MODAL (timeline) ============ -->
+    <div class="modal" id="trackModal" style="display:none;">
+        <div class="modal-content">
+            <h3 id="trackModalTitle">Shipment Track</h3>
+            <div id="trackModalBody" class="timeline"></div>
+            <div class="actions">
+                <button class="btn btn--ghost" onclick="closeModal('trackModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ READ-ONLY LIST MODAL (warehouse/driver shipments) ============ -->
+    <div class="modal" id="listModal" style="display:none;">
+        <div class="modal-content wide">
+            <h3 id="listModalTitle">Shipments</h3>
+            <div class="table-container" style="margin-top:16px;">
+                <table class="data-table">
+                    <thead><tr><th>Tracking #</th><th>Destination</th><th>Weight</th><th>Status</th></tr></thead>
+                    <tbody id="listModalBody"></tbody>
+                </table>
+            </div>
+            <div class="actions">
+                <button class="btn btn--ghost" onclick="closeModal('listModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>
