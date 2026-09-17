@@ -21,7 +21,7 @@ namespace LogiTrackWebV1._0
         {
             base.OnModelCreating(modelBuilder);
 
-            // تطبيق كل الـ Fluent API Configurations المودودة في الـ Assembly
+            
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(LT_DBContext).Assembly);
         }
     }
